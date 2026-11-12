@@ -1,10 +1,8 @@
 'use strict';
-const express = require('express');
+const { createApp } = require('./app');
 require('dotenv').config({"quiet":true});
 
 const port = process.env.PORT || 3000;
-const app = express();
-app.use(express.json());
-app.get('/health', (req, res) => res.json({ ok: true }));
+const ttlMs = Number(process.env.IDEMPOTENCY_TTL_MS || 1000*60*60*24);
 
-app.listen(port, () => console.log(`Idempotency Gateway listening on port ${port}`));
+createApp({ ttlMs }).listen(port, () => console.log(`Idempotency Gateway listening on port ${port}`));
