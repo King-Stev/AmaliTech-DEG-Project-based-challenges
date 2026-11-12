@@ -36,7 +36,8 @@ Requires Node.js 18 or newer.
 
 ```bash
 git clone git@github.com:King-Stev/AmaliTech-DEG-Project-based-challenges.git
-cd backend/idempotency-gateway
+git checkout implementation
+cd backend/Idempotency-gateway
 npm install
 npm start          # listens on http://localhost:3000
 ```
