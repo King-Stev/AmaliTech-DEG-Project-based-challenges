@@ -17,15 +17,18 @@ function fingerprint(body) {
 
 // In-memory idempotency store with TTL expiry (Developer's Choice feature)
 class IdempotencyStore {
-  constructor() {
+  constructor({ ttlMs = 24 * 60 * 60 * 1000, sweepMs = 60 * 1000 } = {}) {
+    this.ttlMs = ttlMs;
     this.entries = new Map();
+    this.timer = setInterval(() => this.sweep(), sweepMs);
+    this.timer.unref(); // never keep the process alive just for cleanup
   }
 
   get(key) {
     const entry = this.entries.get(key);
     if (!entry) return undefined;
     // Expired completed entries are treated as non-existent (lazy expiry)
-    if (entry.state === 'completed') {
+    if (entry.state === 'completed' && entry.expiresAt <= Date.now()) {
       this.entries.delete(key);
       return undefined;
     }
@@ -34,7 +37,7 @@ class IdempotencyStore {
 
   // Synchronous set: JS is single-threaded, so check+set in the same tick is atomic
   startProcessing(key, fp, promise) {
-    this.entries.set(key, { fingerprint: fp, state: 'processing', promise, response: null});
+    this.entries.set(key, { fingerprint: fp, state: 'processing', promise, response: null, expiresAt: null });
   }
 
   complete(key, response) {
@@ -42,9 +45,19 @@ class IdempotencyStore {
     if (!entry) return;
     entry.state = 'completed';
     entry.response = response;
+    entry.expiresAt = Date.now() + this.ttlMs;
   }
 
   remove(key) { this.entries.delete(key); }
+
+  sweep() {
+    const now = Date.now();
+    for (const [key, e] of this.entries) {
+      if (e.state === 'completed' && e.expiresAt <= now) this.entries.delete(key);
+    }
+  }
+
+  stop() { clearInterval(this.timer); }
 }
 
 module.exports = { IdempotencyStore, fingerprint };

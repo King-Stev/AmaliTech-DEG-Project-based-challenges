@@ -4,19 +4,19 @@ const { IdempotencyStore, fingerprint } = require('./store');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function createApp({ processingDelayMs = 2000,  sweepMs } = {}) {
+function createApp({ processingDelayMs = 2000, ttlMs, sweepMs } = {}) {
   const app = express();
-  const store = new IdempotencyStore({ sweepMs });
+  const store = new IdempotencyStore({ ttlMs, sweepMs });
   app.locals.store = store;
   app.use(express.json());
 
-  // Malformed JSON -> clean 400 instead of an HTML stack trace
+  // Malformed JSON -> clean 400 instead of an HTML stack trace.
   app.use((err, req, res, next) => {
     if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON body.' });
     next(err);
   });
 
-  // The "payment processor" (simulated)
+  // The "payment processor" (simulated).
   async function processPayment({ amount, currency }) {
     await sleep(processingDelayMs);
     return { status: 201, body: { status: 'success', message: `Charged ${amount} ${currency}` } };
