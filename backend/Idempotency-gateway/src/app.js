@@ -30,7 +30,7 @@ function createApp({ processingDelayMs = 2000, ttlMs, sweepMs } = {}) {
   // Payment processing
   app.post('/process-payment', async (req, res) => {
     const key = req.get('Idempotency-Key');
-    if (!key || !key.trim() || key.length > 255) {
+    if (!key || !key.trim() || key.length > 5) {
       return res.status(400).json({ error: 'Idempotency-Key header is required (1-255 characters).' });
     }
 

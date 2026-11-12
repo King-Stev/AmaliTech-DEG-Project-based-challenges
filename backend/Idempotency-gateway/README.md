@@ -36,7 +36,7 @@ Requires Node.js 18 or newer.
 
 ```bash
 git clone git@github.com:King-Stev/AmaliTech-DEG-Project-based-challenges.git
-cd idempotency-gateway
+cd backend/idempotency-gateway
 npm install
 npm start          # listens on http://localhost:3000
 ```
@@ -92,4 +92,4 @@ Returns `{"ok": true}`.
 **Why:** without expiry the store grows forever, which is a memory leak in production and a real cost on Redis. Retries from timeouts happen within seconds to minutes, so a 24h window covers all realistic retries while keeping storage bounded.
 A reused key after expiry is treated as a brand-new payment.
 
-Also included: strict input validation (400 errors), so garbage requests never consume a key.
+-- BYE --
